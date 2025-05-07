@@ -1,0 +1,243 @@
+.budgets-container {
+    padding: 2rem;
+    position: relative;
+    min-height: 100vh;
+  }
+  
+  .budget-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  
+.plus-icon {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-right: 0.5rem;
+  display: inline-block;
+}
+  
+  .budget-card {
+    position: relative;
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .budget-card h3 {
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+    font-size: 1.3rem;  /* Increased from default size */
+    font-weight: 600;   /* Made slightly bolder */
+  }
+  
+  .budget-card p {
+    font-size: 1.25rem;
+    color: #1e293b;
+    font-weight: bold;
+  }
+  
+  .delete-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #dc2626;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 4px;
+  }
+  
+  .delete-btn:hover {
+    opacity: 1;
+  }
+  
+  .add-budget-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: #1e293b;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+  }
+  
+  .add-budget-btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90%;
+    max-width: 500px;
+  }
+  
+  .modal h2 {
+    margin-bottom: 1.5rem;
+    color: #333;
+  }
+  
+  .modal form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .modal input {
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .modal-buttons button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  .modal-buttons button[type="submit"] {
+    background: #1e293b;
+    color: white;
+  }
+  
+  .modal-buttons button[type="button"] {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+.amount-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.amount-group input {
+  flex: 2;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.amount-group select {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+}
+
+.budget-amount {
+  color: #1e293b;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1rem 0;
+}
+
+.spent-label {
+  color: #1e293b;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.spent-amount {
+  color: #1e293b;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+}
+
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #1e293b;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Add new styles for the header section */
+.budgets-header {
+  margin-bottom: 2.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 1.5rem;
+}
+
+.budgets-header h1 {
+  font-size: 2.2rem;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.budgets-header p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.budgets-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.summary-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.summary-card h3 {
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.summary-card p {
+  color: #1e293b;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
