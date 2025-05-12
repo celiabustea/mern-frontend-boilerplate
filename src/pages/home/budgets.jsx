@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { useSelector, useDispatch } from 'react-redux';
-import { addBudget, deleteBudget } from '../../store/slices/budgetsSlice';
-import "./budgets.css";
+import { useSelector, useDispatch } from "react-redux";
+import { addBudget, deleteBudget } from "../../store/slices/budgetsSlice";
+import Button from "../../components/atoms/Button/Button";
+import Input from "../../components/atoms/Input/Input";
+import Heading from "../../components/atoms/Headings/Heading";
+import Icon from "../../components/atoms/Icons/Icon";
+import "../../styles/pages/budgets.css";
 
 const Budgets = () => {
   const dispatch = useDispatch();
@@ -50,13 +54,13 @@ const Budgets = () => {
   return (
     <div className="budgets-container">
       <div className="budgets-header">
-        <h1>Budget Overview</h1>
-        <p>Manage and track your budget categories</p>
+        <Heading level={1}>Budget Overview</Heading>
+        <p className="budgets-subtitle">Manage and track your budget categories</p>
       </div>
 
       <div className="budgets-summary">
         <div className="summary-card">
-          <h3>Total Budgeted</h3>
+          <Heading level={3}>Total Budgeted</Heading>
           <p>
             {budgets.reduce((total, budget) => total + budget.amount, 0)
               .toLocaleString('en-US', {
@@ -66,11 +70,11 @@ const Budgets = () => {
           </p>
         </div>
         <div className="summary-card">
-          <h3>Total Categories</h3>
+          <Heading level={3}>Total Categories</Heading>
           <p>{budgets.length}</p>
         </div>
         <div className="summary-card">
-          <h3>Total Spent</h3>
+          <Heading level={3}>Total Spent</Heading>
           <p>
             {budgets.reduce((total, budget) => total + (budget.spent || 0), 0)
               .toLocaleString('en-US', {
@@ -90,51 +94,56 @@ const Budgets = () => {
           budgets.map((budget) => (
             <div key={budget.id} className="budget-card">
               <div className="budget-card-header">
-                <h3>{budget.category}</h3>
-                <button
-                  className="delete-btn"
+                <Heading level={3}>{budget.category}</Heading>
+                <Button
+                  variant="ghost"
+                  icon={<Icon name="delete" />}
                   onClick={() => handleDelete(budget.id)}
-                >
-                  🗑️
-                </button>
+                  className="delete-btn"
+                />
               </div>
-              <p className="budget-amount">
-                {budget.amount.toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: budget.currency
-                })}
-              </p>
-              <p className="spent-label">Spent:</p>
+              <div className="budget-info">
+                <p className="budget-amount">
+                  Budget: {budget.amount.toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: budget.currency
+                  })}
+                </p>
+                <p className="remaining-amount">
+                  Remaining: {(budget.amount - (budget.spent || 0)).toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: budget.currency
+                  })}
+                </p>
+              </div>
               <div className="progress-container">
                 <div
-                  className="progress-bar"
-                  style={{ width: `${(budget.spent / budget.amount) * 100 || 0}%` }}
-                ></div>
+                  className={`progress-fill ${(budget.spent / budget.amount) > 0.9 ? 'danger' : 
+                    (budget.spent / budget.amount) > 0.7 ? 'warning' : ''}`}
+                  style={{ 
+                    width: `${Math.min((budget.spent / budget.amount) * 100, 100)}%`
+                  }}
+                />
               </div>
-              <p className="spent-amount">
-                {(budget.spent || 0).toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: budget.currency
-                })}
-              </p>
             </div>
           ))
         )}
       </div>
 
-      <button
+      <Button
         className="add-budget-btn"
         onClick={() => setIsModalOpen(true)}
-      >
-        + Add Budget Category
-      </button>
+        label="Add Budget"
+        variant="primary"
+        icon={<Icon name="add" />}
+      />
 
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Add New Budget Category</h2>
+            <Heading level={2}>Add New Budget Category</Heading>
             <form onSubmit={handleAddBudget}>
-              <input
+              <Input
                 type="text"
                 placeholder="Category Name"
                 value={newBudget.category}
@@ -145,7 +154,7 @@ const Budgets = () => {
                 required
               />
               <div className="amount-group">
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   min="0"
@@ -154,28 +163,31 @@ const Budgets = () => {
                   onChange={handleAmountChange}
                   required
                 />
-                <select
+                <Input
+                  type="select"
                   value={newBudget.currency}
                   onChange={(e) => setNewBudget({
                     ...newBudget,
                     currency: e.target.value
                   })}
-                >
-                  {currencies.map(currency => (
-                    <option key={currency.code} value={currency.code}>
-                      {currency.code} ({currency.symbol})
-                    </option>
-                  ))}
-                </select>
+                  options={currencies.map(currency => ({
+                    value: currency.code,
+                    label: `${currency.code} (${currency.symbol})`
+                  }))}
+                />
               </div>
               <div className="modal-buttons">
-                <button type="submit">Add Budget</button>
-                <button
+                <Button
+                  type="submit"
+                  label="Add Budget"
+                  variant="primary"
+                />
+                <Button
                   type="button"
+                  label="Cancel"
+                  variant="secondary"
                   onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
+                />
               </div>
             </form>
           </div>

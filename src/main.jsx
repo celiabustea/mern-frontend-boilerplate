@@ -2,10 +2,11 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import { Provider } from 'react-redux';
-import { store } from './store';
+import { store } from './store/index';
+import "./styles/main.css"; // Make sure this path is correct
 
 import Login from "./pages/home/Login";
-import Layout from "./components/Layout";
+import Layout from "./layouts/Layout";
 import Home from "./pages/home/Home";
 import Transactions from "./pages/home/transactions";
 import Budgets from "./pages/home/budgets";

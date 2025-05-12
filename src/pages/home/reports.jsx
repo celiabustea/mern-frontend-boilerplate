@@ -1,6 +1,7 @@
 // src/pages/reports.jsx
 
 import React from "react";
+import "../../styles/pages/reports.css";
 import { 
   BarChart, Bar, 
   LineChart, Line,
@@ -11,7 +12,6 @@ import {
   ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-import "./reports.css";
 
 const Reports = () => {
   // Sample data - pana vine databaseu

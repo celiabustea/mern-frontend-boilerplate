@@ -1,19 +1,24 @@
 import React from "react";
 import { useSelector } from 'react-redux';
-import "./home.css";
+import "../../styles/pages/home.css";
 import { Link } from "react-router-dom";
 
 const Home = () => {
   const transactions = useSelector(state => state.transactions.items);
+  const recurringTransactions = useSelector(state => state.transactions.recurring); // Add this line
   const budgets = useSelector(state => state.budgets.items);
 
-  const recentTransactions = transactions.slice(-3);
-  const totalBalance = transactions.reduce((sum, trans) => sum + trans.amount, 0);
-  const monthlySpending = transactions
+  const allTransactions = [...transactions, ...recurringTransactions]; // Combine both types
+  
+  const recentTransactions = [...allTransactions]
+    .sort((a, b) => new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date))
+    .slice(0, 3);
+    
+  const totalBalance = allTransactions.reduce((sum, trans) => sum + trans.amount, 0);
+  const monthlySpending = allTransactions
     .filter(trans => trans.amount < 0)
     .reduce((sum, trans) => sum + Math.abs(trans.amount), 0);
 
-  // Format currency consistently
   const formatCurrency = (amount, currency = 'USD') => {
     return amount.toLocaleString('en-US', {
       style: 'currency',
@@ -60,7 +65,7 @@ const Home = () => {
                   <span className={`transaction-amount ${transaction.amount > 0 ? 'positive' : 'negative'}`}>
                     {formatCurrency(transaction.amount, transaction.currency)}
                   </span>
-                  <span className="transaction-date">{transaction.date}</span>
+                  <span className="transaction-date">{transaction.timestamp || transaction.date}</span>
                 </div>
               </div>
             ))}
@@ -89,7 +94,7 @@ const Home = () => {
                     className="progress-bar"
                     style={{
                       width: `${Math.min((budget.spent || 0) / budget.amount * 100, 100)}%`,
-                      backgroundColor: (budget.spent || 0) > budget.amount ? '#ef4444' : '#2563eb'
+                      backgroundColor: (budget.spent || 0) > budget.amount ? '#ef4444' : '#1e293b'
                     }}
                   />
                 </div>

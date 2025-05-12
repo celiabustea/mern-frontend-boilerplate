@@ -1,22 +1,32 @@
 import React, { useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
+import Button from "../../components/atoms/Button/Button";
+import Heading from "../../components/atoms/Headings/Heading";
+import Input from "../../components/atoms/Input/Input";
+import Icon from "../../components/atoms/Icons/Icon";
+import "../../styles/pages/transactions.css";
 import { addTransaction, deleteTransaction, addRecurringTransaction, deleteRecurringTransaction } from '../../store/slices/transactionsSlice';
 import { updateBudgetSpent } from '../../store/slices/budgetsSlice';
-import "./transactions.css";
 
 const Transactions = () => {
   const dispatch = useDispatch();
   const transactions = useSelector(state => state.transactions.items);
-  const recurringTransactions = useSelector(state => state.transactions.recurring); // Get recurring transactions
-  const budgets = useSelector(state => state.budgets.items);
+  const recurringTransactions = useSelector(state => state.transactions.recurring);
+  const allTransactions = [...transactions, ...recurringTransactions];
+
+  const sortedTransactions = [...allTransactions].sort((a, b) => {
+    return new Date(b.timestamp || b.date) - new Date(a.timestamp || a.date);
+  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState('monthly');
   const [newTransaction, setNewTransaction] = useState({
     amount: "",
     description: "",
     category: "",
-    date: new Date().toISOString().split('T')[0],
-    isRecurring: false, // Whether the transaction is recurring
-    recurringFrequency: "" // Frequency of the recurring transaction
+    date: new Date().toISOString().slice(0, 16) // Changed to include hours and minutes
   });
 
   const handleAddTransaction = (e) => {
@@ -24,54 +34,38 @@ const Transactions = () => {
     const transaction = {
       id: Date.now(),
       ...newTransaction,
-      amount: parseFloat(newTransaction.amount)
+      amount: parseFloat(newTransaction.amount),
+      isRecurring: isRecurring,
+      recurringFrequency: isRecurring ? recurringFrequency : null,
+      timestamp: new Date().toISOString()
     };
 
-    if (transaction.isRecurring) {
-      dispatch(addRecurringTransaction(transaction)); // Add to recurring transactions
+    if (isRecurring) {
+      dispatch(addRecurringTransaction(transaction));
     } else {
-      dispatch(addTransaction(transaction)); // Add to regular transactions
+      dispatch(addTransaction(transaction));
     }
 
-    // Update budget spent amount
-    if (transaction.category) {
-      const budget = budgets.find(b => b.category === transaction.category);
-      if (budget) {
-        dispatch(updateBudgetSpent({
-          budgetId: budget.id,
-          amount: transaction.amount
-        }));
-      }
-    }
-
+    // Reset all form states
     setNewTransaction({
       amount: "",
       description: "",
       category: "",
-      date: new Date().toISOString().split('T')[0],
-      isRecurring: false,
-      recurringFrequency: ""
+      date: new Date().toISOString().slice(0, 16)
     });
+    setIsRecurring(false);
+    setRecurringFrequency('monthly');
     setIsModalOpen(false);
   };
 
-  const handleDelete = (transaction) => {
-    dispatch(deleteTransaction(transaction.id));
+  const handleDelete = (transactionId) => {
+    const isRecurring = recurringTransactions.some(t => t.id === transactionId);
     
-    // Also update the budget spent amount
-    if (transaction.category) {
-      const budget = budgets.find(b => b.category === transaction.category);
-      if (budget) {
-        dispatch(updateBudgetSpent({
-          budgetId: budget.id,
-          amount: -transaction.amount // Subtract the amount from spent
-        }));
-      }
+    if (isRecurring) {
+      dispatch(deleteRecurringTransaction(transactionId));
+    } else {
+      dispatch(deleteTransaction(transactionId));
     }
-  };
-
-  const handleDeleteRecurring = (transaction) => {
-    dispatch(deleteRecurringTransaction(transaction.id));
   };
 
   return (
@@ -99,23 +93,28 @@ const Transactions = () => {
       </div>
 
       <div className="transactions-list">
-        {transactions.length === 0 ? (
+        {sortedTransactions.length === 0 ? (
           <div className="empty-state">
-            <p>No transactions yet. Click the button below to add one!</p>
+            <p>No transactions yet</p>
           </div>
         ) : (
-          transactions.map((transaction) => (
+          sortedTransactions.map((transaction) => (
             <div key={transaction.id} className="transaction-card">
               <div className="transaction-header">
                 <h3>{transaction.description}</h3>
                 <div className="transaction-actions">
-                  <p className="transaction-category">{transaction.category}</p>
-                  <button
+                  <span className="transaction-category">{transaction.category}</span>
+                  {transaction.isRecurring && (
+                    <span className="transaction-frequency">
+                      ({transaction.recurringFrequency})
+                    </span>
+                  )}
+                  <Button
+                    variant="ghost"
+                    onClick={() => handleDelete(transaction.id)}
+                    icon={<Icon name="delete" />}
                     className="delete-btn"
-                    onClick={() => handleDelete(transaction)}
-                  >
-                    🗑️
-                  </button>
+                  />
                 </div>
               </div>
               <p className="transaction-amount">
@@ -124,59 +123,34 @@ const Transactions = () => {
                   currency: 'USD'
                 })}
               </p>
-              <p className="transaction-date">{transaction.date}</p>
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="recurring-transactions">
-        <h2>Recurring Transactions</h2>
-        {recurringTransactions.length === 0 ? (
-          <div className="empty-state">
-            <p>No recurring transactions yet.</p>
-          </div>
-        ) : (
-          recurringTransactions.map((transaction) => (
-            <div key={transaction.id} className="transaction-card">
-              <div className="transaction-header">
-                <h3>{transaction.description}</h3>
-                <div className="transaction-actions">
-                  <p className="transaction-category">{transaction.category}</p>
-                  <p className="transaction-frequency">{transaction.recurringFrequency}</p>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDeleteRecurring(transaction)}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-              <p className="transaction-amount">
-                {transaction.amount.toLocaleString('en-US', {
-                  style: 'currency',
-                  currency: 'USD'
+              <p className="transaction-date">
+                {new Date(transaction.timestamp || transaction.date).toLocaleString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
                 })}
               </p>
-              <p className="transaction-date">{transaction.date}</p>
             </div>
           ))
         )}
       </div>
 
-      <button
+      <Button
         className="add-transaction-btn"
         onClick={() => setIsModalOpen(true)}
-      >
-        + Add Transaction
-      </button>
+        label="Add Transaction"
+        variant="primary"
+        icon={<Icon name="add" />}
+      />
 
       {isModalOpen && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Add New Transaction</h2>
+            <Heading level={2}>Add New Transaction</Heading>
             <form onSubmit={handleAddTransaction}>
-              <input
+              <Input
                 type="number"
                 step="0.01"
                 placeholder="Amount"
@@ -187,7 +161,7 @@ const Transactions = () => {
                 })}
                 required
               />
-              <input
+              <Input
                 type="text"
                 placeholder="Description"
                 value={newTransaction.description}
@@ -197,7 +171,7 @@ const Transactions = () => {
                 })}
                 required
               />
-              <input
+              <Input
                 type="text"
                 placeholder="Category"
                 value={newTransaction.category}
@@ -207,8 +181,8 @@ const Transactions = () => {
                 })}
                 required
               />
-              <input
-                type="date"
+              <Input
+                type="datetime-local"
                 value={newTransaction.date}
                 onChange={(e) => setNewTransaction({
                   ...newTransaction,
@@ -216,47 +190,45 @@ const Transactions = () => {
                 })}
                 required
               />
-              <div className="checkbox-group">
-                <label>
+
+              <div className="recurring-option">
+                <label className="checkbox-label">
                   <input
                     type="checkbox"
-                    checked={newTransaction.isRecurring}
-                    onChange={(e) => setNewTransaction({
-                      ...newTransaction,
-                      isRecurring: e.target.checked,
-                      recurringFrequency: e.target.checked ? "monthly" : "" // Default to "monthly" if checked
-                    })}
+                    checked={isRecurring}
+                    onChange={(e) => setIsRecurring(e.target.checked)}
                   />
-                  Recurring Transaction
+                  Make this a recurring transaction
                 </label>
               </div>
 
-              {newTransaction.isRecurring && (
+              {isRecurring && (
                 <div className="frequency-group">
-                  <label htmlFor="recurringFrequency">Frequency:</label>
+                  <label>Frequency:</label>
                   <select
-                    id="recurringFrequency"
-                    value={newTransaction.recurringFrequency}
-                    onChange={(e) => setNewTransaction({
-                      ...newTransaction,
-                      recurringFrequency: e.target.value
-                    })}
-                    required
+                    value={recurringFrequency}
+                    onChange={(e) => setRecurringFrequency(e.target.value)}
                   >
-                    <option value="monthly">Monthly</option>
+                    <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
                     <option value="yearly">Yearly</option>
                   </select>
                 </div>
               )}
+
               <div className="modal-buttons">
-                <button type="submit">Add Transaction</button>
-                <button
+                <Button
+                  type="submit"
+                  label="Add Transaction"
+                  variant="primary"
+                />
+                <Button
                   type="button"
+                  label="Cancel"
+                  variant="secondary"
                   onClick={() => setIsModalOpen(false)}
-                >
-                  Cancel
-                </button>
+                />
               </div>
             </form>
           </div>
